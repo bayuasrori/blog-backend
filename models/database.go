@@ -27,5 +27,5 @@ func Connect() *gorm.DB {
 
 func Migrate() {
 	db := Connect()
-	db.AutoMigrate(&Article{})
+	db.AutoMigrate(&Article{}, &Category{}, &User{}, &UserToken{})
 }

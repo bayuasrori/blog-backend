@@ -26,3 +26,11 @@ func CreateArticle(c *gin.Context) {
 
 	c.JSON(200, article)
 }
+
+func DeleteArticle(c *gin.Context) {
+	var article models.Article
+	c.BindJSON(&article)
+	models.DeleteArticle(article.ID)
+
+	c.JSON(200, article)
+}

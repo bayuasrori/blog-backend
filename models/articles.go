@@ -1,6 +1,7 @@
 package models
 
 import (
+	"log"
 	"time"
 
 	"gorm.io/gorm"
@@ -10,13 +11,14 @@ import (
 
 type Article struct {
 	gorm.Model
-	ID        uint      `gorm:"primaryKey" json:"id"`
-	Slug      string    `json:"slug"`
-	Title     string    `json:"title"`
-	Content   string    `gorm:"type:text" json:"content"`
-	Likes     uint8     `json:"likse"`
-	CreatedAt time.Time `gorm:"primaryKey" json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	ID         uint        `gorm:"primaryKey" json:"id"`
+	Slug       string      `json:"slug"`
+	Title      string      `json:"title"`
+	Content    string      `gorm:"type:text" json:"content"`
+	Likes      uint8       `json:"likse"`
+	CreatedAt  time.Time   `json:"created_at"`
+	UpdatedAt  time.Time   `json:"updated_at"`
+	Categories []*Category `gorm:"many2many:article_categories;"`
 }
 
 func GetArticles() []Article {
@@ -24,13 +26,20 @@ func GetArticles() []Article {
 	articles := []Article{}
 	db.Find(&articles)
 
+	for a := range articles {
+		if len(articles[a].Content) > 40 {
+			articles[a].Content = articles[a].Content[0:40]
+		}
+	}
 	return articles
 }
 
 func GetArticleSlug(slug string) Article {
 	db := Connect()
-	article := Article{Slug: slug}
-	db.Find(&article)
+	var article Article
+	log.Printf(slug)
+	db.Where("slug = ?", slug).First(&article)
+	log.Printf(article.Title)
 
 	return article
 }
@@ -46,6 +55,6 @@ func CreateArticle(article Article) Article {
 func DeleteArticle(id uint) Article {
 	db := Connect()
 	article := Article{ID: id}
-	db.Delete(&article)
+	db.Delete(&Article{}, id)
 	return article
 }
