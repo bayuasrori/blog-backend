@@ -8,12 +8,19 @@ import (
 
 type Category struct {
 	gorm.Model
-	ID          uint       `gorm:"primaryKey" json:"id"`
+	ID          uint64     `gorm:"primaryKey" json:"id"`
 	Name        string     `json:"name" gorm:"unique"`
 	Description string     `gorm:"type:text" json:"description"`
 	CreatedAt   time.Time  `json:"created_at"`
 	UpdatedAt   time.Time  `json:"updated_at"`
 	Articles    []*Article `gorm:"many2many:article_categories;"`
+}
+
+type ArticleCategory struct {
+	gorm.Model
+	CategoryID int `gorm:"primaryKey"`
+	ArticleID  int `gorm:"primaryKey"`
+	CreatedAt  time.Time
 }
 
 func GetCategories() []Category {
@@ -39,7 +46,7 @@ func CreateCategory(category Category) Category {
 	return category
 }
 
-func DeleteCategory(id uint) Category {
+func DeleteCategory(id uint64) Category {
 	db := Connect()
 	category := Category{ID: id}
 	db.Delete(&category)

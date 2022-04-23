@@ -15,6 +15,10 @@ type Auth struct {
 	Password string `json:"password"`
 }
 
+type RefreshPayload struct {
+	RefreshToken string `json:"refreshToken"`
+}
+
 func Login(c *gin.Context) {
 	decoder := json.NewDecoder(c.Request.Body)
 	var auth Auth
@@ -37,8 +41,15 @@ func Login(c *gin.Context) {
 }
 
 func Refresh(c *gin.Context) {
-	rToken := c.Request.Header["refresh_token"][0]
-	token, er := authentication.DecodeRefreshToken(rToken)
+	decoder := json.NewDecoder(c.Request.Body)
+	var refresh RefreshPayload
+
+	if err := decoder.Decode(&refresh); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	token, er := authentication.DecodeRefreshToken(refresh.RefreshToken)
 	if er != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
 		return
@@ -70,3 +81,5 @@ func Register(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"status": "created"})
 }
+
+func Logout(c *gin.Context) {}

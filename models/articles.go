@@ -2,6 +2,7 @@ package models
 
 import (
 	"log"
+	"strconv"
 	"time"
 
 	"gorm.io/gorm"
@@ -12,13 +13,27 @@ import (
 type Article struct {
 	gorm.Model
 	ID         uint        `gorm:"primaryKey" json:"id"`
-	Slug       string      `json:"slug"`
+	Slug       string      `json:"slug" gorm:"index:idx_slug,unique"`
 	Title      string      `json:"title"`
 	Content    string      `gorm:"type:text" json:"content"`
 	Likes      uint8       `json:"likse"`
 	CreatedAt  time.Time   `json:"created_at"`
 	UpdatedAt  time.Time   `json:"updated_at"`
 	Categories []*Category `gorm:"many2many:article_categories;"`
+	Author     User
+}
+
+func AddArticleCategory(category Category, article Article) {
+	db := Connect()
+	db.Model(&article).Association("Categories").Append([]Category{category})
+}
+
+func GetArticlesByCategory(name string) []Article {
+	db := Connect()
+	articles := []Article{}
+	db.Preload("Categories").Where("id = (SELECT article_id FROM article_categories, categories WHERE categories.name = ?)", name).Find(&articles)
+
+	return articles
 }
 
 func GetArticles() []Article {
@@ -28,7 +43,7 @@ func GetArticles() []Article {
 
 	for a := range articles {
 		if len(articles[a].Content) > 40 {
-			articles[a].Content = articles[a].Content[0:40]
+			articles[a].Content = articles[a].Content[0:40] + "..."
 		}
 	}
 	return articles
@@ -46,7 +61,7 @@ func GetArticleSlug(slug string) Article {
 
 func CreateArticle(article Article) Article {
 	db := Connect()
-	article.Slug = slug.Make(article.Title)
+	article.Slug = slug.Make(article.Title) + strconv.Itoa(time.Now().Nanosecond())
 	db.Create(&article)
 
 	return article

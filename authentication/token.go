@@ -18,7 +18,7 @@ func CreateToken(userid uint64) (string, error) {
 	atClaims := jwt.MapClaims{}
 	atClaims["authorized"] = true
 	atClaims["user_id"] = userid
-	atClaims["exp"] = time.Now().Add(time.Minute * 15).Unix()
+	atClaims["exp"] = time.Now().Add(time.Minute * 5).Unix()
 	at := jwt.NewWithClaims(jwt.SigningMethodHS256, atClaims)
 	token, err := at.SignedString([]byte(os.Getenv("ACCESS_SECRET")))
 	if err != nil {
@@ -46,6 +46,17 @@ func DecodeRefreshToken(token string) (*jwt.Token, error) {
 	claims := jwt.MapClaims{}
 	t, err := jwt.ParseWithClaims(token, claims, func(token *jwt.Token) (interface{}, error) {
 		return []byte(os.Getenv("REFRESH_SECRET")), nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return t, err
+}
+
+func DecodeAcecessToken(token string) (*jwt.Token, error) {
+	claims := jwt.MapClaims{}
+	t, err := jwt.ParseWithClaims(token, claims, func(token *jwt.Token) (interface{}, error) {
+		return []byte(os.Getenv("ACCESS_SECRET")), nil
 	})
 	if err != nil {
 		return nil, err

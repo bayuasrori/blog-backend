@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"goblog/middleware"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -10,9 +12,21 @@ func Routes() *gin.Engine {
 	articles := router.Group("/articles")
 	{
 		articles.GET("", GetArticles)
+		articles.GET("/category/:name", GetArticlesByCategory)
+		articles.GET("/category", GetCategories)
 		articles.GET("/:slug", GetArticleSlug)
-		articles.POST("", CreateArticle)
-		articles.DELETE("", DeleteArticle)
+		author := articles.Group("")
+		author.Use(middleware.AuthMiddleware())
+		{
+			author.POST("", CreateArticle)
+			author.PUT("/:slug", CreateArticle)
+			author.DELETE("", DeleteArticle)
+
+			author.POST("/category", CreateCategory)
+			author.PUT("/category/:name", GetArticles)
+			author.DELETE("/category", DeleteCategory)
+
+		}
 	}
 
 	authentication := router.Group("/auth")
